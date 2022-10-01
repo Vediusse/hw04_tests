@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}
+    Yatube 
+{% endblock %}
+{% block header %}1{% endblock %}
+{% block content %}
+    <section id="posts">
+      <h1 class="main__header">Главная страница</h1>  
+      <div class="posts container py-5">     
+          <h2 class="posts__header">Новые публикации</h2>
+          {% for post in page_obj %}
+            <div class="posts_container">
+              {% include 'includes/description.html' %}
+              {% if post.group %}
+              <div class="post__link">
+                <a href="{% url 'posts:group_list' post.group.slug %}" class="posts__data">все записи группы: {{post.group.slug}}</a>
+              </div>
+              {% endif %}
+                {% if post.author == user %}
+                    <div class="post__link">
+                      <a href="{% url 'posts:edit' post.id %}" class="posts__data"> Pедактировать запись </a>
+                    </div>
+                    {% else %}
+                    <div class="post__link">
+                      <a href="{% url "posts:post_detail" post.id %}" class="posts__data"> О посте </a>
+                    </div>
+                {% endif %}
+
+            </div>
+      {% if forloop.last %}
+        
+      {% endif %}
+  {% endfor %} 
+{% endblock %} 
+
+
+
+
+
+
+
+
+
+  

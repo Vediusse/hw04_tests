@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block header %}1{% endblock %}
+      
+    {% block title %} Пост | Yatube {% endblock %}
+    {% block content %}
+    <section id="info">
+      <div class="row post__info">
+        <aside class="col-12 col-md-3 ">
+          <ul class="list-group list-group-flush info__blocks">
+            <li class="list-group-item">
+              Дата публикации: {{ post.pub_date|date:"d E Y" }}
+            </li>
+            {% if post.group %}
+              <li class="list-group-item">
+                Группа: {{post.group.slug}}
+                <a href="{% url 'posts:group_list' post.group.slug %}" class="posts__data">все записи группы</a>
+              </li> 
+            {% endif %}
+            <li class="list-group-item">
+              Автор: {{ post.author.get_full_name }}
+            </li>
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              Всего постов автора: <span >{{ post_amount }}</span>
+            </li>
+            <li class="list-group-item">
+              <a href="{% url 'posts:profile' post.author  %}">
+                все посты пользователя
+              </a>
+            </li>
+          </ul>
+        </aside>
+        <article class="col-12 col-md-9 info__content">
+          <p  class="posts__text">
+            {{ post.text|linebreaksbr }}
+          </p>
+          {% if post.author == user %}
+            <div class="post__link">   
+              <a href="{% url 'posts:edit' post.id %}" class="posts__data"> Pедактировать запись</a>
+            </div>
+          {% endif %}
+        </article>
+      </div>
+    </section>
+  
+
+
+{% endblock %} 

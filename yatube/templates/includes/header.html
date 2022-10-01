@@ -1,0 +1,45 @@
+{% load static %}
+<header id="header">
+    <!-- Использованы классы бустрапа для создания типовой навигации с логотипом -->
+    <!-- В дальнейшем тут будет создано полноценное меню --> 
+    <div class="header__container">   
+      <nav class=" header__nav navbar  navbar-light" >
+          <a class="navbar-brand header__link " href="{% url 'posts:index' %}">
+            <img src="{% static 'img/logo2.png' %}" class="header_icon" >
+            <!-- тег span используется для добавления нужных стилей отдельным участкам текста -->
+            <p class="header__logo">
+              <span>Ya</span>tube
+            </p>
+          </a>
+          <div class="nav__wrapper">
+            <a href="{% url 'about:author' %}" class='nav__text'>👨‍💻 Об авторе</a>
+            <a href="{% url 'about:tech' %}" class="nav__text">⚙️ Технологии</a>
+            {% if user.is_authenticated %}
+            <a class="nav__text" href="{% url 'posts:create' %}">
+              ✏️ Новая запись
+            </a>
+           
+            <a href="{% url 'posts:profile' user.username %}" class="nav__text">
+              💻 Пользователь: <span>{{ user.username }}</span>
+            </a>
+            <a class="" href="{% url 'users:logout' %}" class="nav__text">
+              🚪 Выйти
+            </a>
+          {% else %}
+            <a class="" href="{% url 'users:login' %}">
+              🕶 Войти
+            </a>
+            <a class="" href="{% url 'users:signup' %}">
+              ☀️ Регистрация
+            </a>
+          {% endif %}
+          </div>
+          
+          <div class="header__btn header__link ">
+            <img src="{% static 'img/free-icon-menu-561184.png' %}" class=" header__list-btn">
+      </div>
+        
+      </nav> 
+    </div>
+    
+</header>

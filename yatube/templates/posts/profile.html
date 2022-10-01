@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %} Посты {{ author.first_name }} {{ author.last_name }} | Yatube {% endblock %}
+{% block header %}Список всех групп{% endblock %}
+    {% block content %}
+    <section id="posts">
+        <h1>Все посты пользователя: {{ author.get_full_name }} @aka {{author.username}} </h1>
+      <div class="posts container py-5">      
+      {% for post in page_obj %}
+        <div class="posts_container">
+          {% include 'includes/description.html' %} 
+          {% if post.group %} 
+          <div class="post__link">   
+            <a href="{% url 'posts:group_list' post.group.slug %}" class="posts__data">все записи группы: {{post.group.slug}}</a>
+          </div>  
+          {% endif %} 
+        </div> 
+      {% if forloop.last %}
+        
+      {% endif %}
+  {% endfor %} 
+{% endblock %} 

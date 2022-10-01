@@ -1,0 +1,9 @@
+<ul class="posts__data posts__ul">
+    <li>
+      Автор: <a href="{% url 'posts:profile' post.author %}">{{ post.author.get_full_name }} @aka {{post.author}}</a>
+    </li>
+    <li class="posts__li">
+      <span class="post_article">Дата публикации:</span> {{ post.pub_date|date:"d E Y" }}
+    </li>
+</ul>
+<p class="posts__text">{{ post.text|linebreaksbr }}</p> 
