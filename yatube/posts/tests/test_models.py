@@ -21,7 +21,7 @@ class PostModelTest(TestCase):
             text='Тестовый пост',
         )
 
-    def test_models_have_correct_object_names(self):
+    def test_models_have_correct_methods(self):
         post = PostModelTest.post.__str__()
         self.assertEqual(13, len(post))
         group = PostModelTest.group
