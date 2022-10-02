@@ -88,7 +88,8 @@ class PostPagesTests(TestCase):
                                  settings.PAGE_AMOUNT)
                 response = self.client.get(reverse_name + page_number)
                 self.assertEqual(len(response.context["page_obj"]),
-                                 settings.POST_PAGE_AMOUNT - settings.PAGE_AMOUNT)
+                                 settings.POST_PAGE_AMOUNT
+                                 - settings.PAGE_AMOUNT)
                 response = self.authorized_client.get(reverse_name)
                 first_object = response.context["page_obj"][0]
                 self.assertEqual(first_object.id, FIELDS[0])
