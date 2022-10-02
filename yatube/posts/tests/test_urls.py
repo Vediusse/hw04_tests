@@ -32,7 +32,7 @@ class PostURLTests(TestCase):
     def test_urls_uses_correct_template(self):
 
         templates_url_names = {
-            '/':  HTTPStatus.OK.value,
+            '/': HTTPStatus.OK.value,
             f'/group/{self.group.slug}/': HTTPStatus.OK.value,
             f'/profile/{self.user}/': HTTPStatus.OK.value,
             f'/posts/{self.post.id}/': HTTPStatus.OK.value,
