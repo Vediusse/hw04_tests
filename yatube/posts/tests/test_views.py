@@ -4,6 +4,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from ..models import Post, Group
+from django.conf import settings
 
 User = get_user_model()
 
@@ -13,7 +14,8 @@ class PostPagesTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         User.objects.create(username="Bazz")
-        Group.objects.create(
+        cls.user = User.objects.get(username="Bazz")
+        cls.group = Group.objects.create(
             title="Тестовая группа",
             slug="test-slug",
         )
@@ -23,7 +25,7 @@ class PostPagesTests(TestCase):
                 author=User.objects.get(username="Bazz"),
                 group=Group.objects.get(slug="test-slug"),
             )
-            for i in range(15)
+            for i in range(settings.POST_PAGE_AMOUNT)
         ]
         Post.objects.bulk_create(post_objs)
 
@@ -50,7 +52,7 @@ class PostPagesTests(TestCase):
         }
 
     def setUp(self):
-        self.user = User.objects.get(username="Bazz")
+
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         self.group = Group.objects.get(slug="test-slug")
@@ -65,12 +67,12 @@ class PostPagesTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_paginator_and_sorting_by_pubdate(self):
-        FIELDS = [
+        FIELDS = (
             PostPagesTests.last_post_id,
             f"Пост №{PostPagesTests.last_post_id}",
             self.user,
             self.group,
-        ]
+        )
         view_funcs = {
             reverse("posts:index"): "?page=2",
             reverse(
@@ -82,9 +84,9 @@ class PostPagesTests(TestCase):
         for reverse_name, page_number in view_funcs.items():
             with self.subTest(reverse_name=reverse_name):
                 response = self.client.get(reverse_name)
-                self.assertEqual(len(response.context["page_obj"]), 10)
+                self.assertEqual(len(response.context["page_obj"]), settings.PAGE_AMOUNT)
                 response = self.client.get(reverse_name + page_number)
-                self.assertEqual(len(response.context["page_obj"]), 5)
+                self.assertEqual(len(response.context["page_obj"]), settings.POST_PAGE_AMOUNT - settings.PAGE_AMOUNT)
                 response = self.authorized_client.get(reverse_name)
                 first_object = response.context["page_obj"][0]
                 self.assertEqual(first_object.id, FIELDS[0])
@@ -131,8 +133,8 @@ class PostPagesTests(TestCase):
         Post.objects.create(text=fields[0], author=fields[1], group=fields[2])
         view_funcs = [
             reverse("posts:index"),
-            reverse("posts:group_list", kwargs={"slug": "test-slug"}),
-            reverse("posts:profile", kwargs={"username": "Bazz"}),
+            reverse("posts:group_list", kwargs={"slug": self.group.slug}),
+            reverse("posts:profile", kwargs={"username": self.user.username}),
         ]
         for reverse_name in view_funcs:
             with self.subTest(reverse_name=reverse_name):

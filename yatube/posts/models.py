@@ -46,12 +46,12 @@ class Post(models.Model):
         verbose_name='Автор поста'
     )
 
-    def __str__(self):
-        return self.text[:20]
-
     @property
     def get_author_post(self):
         return self.author.posts.all().count()
 
     class Meta:
         ordering = ('-pub_date',)
+
+    def __str__(self):
+        return self.text[:15]

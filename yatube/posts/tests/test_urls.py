@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase, Client
+from http import HTTPStatus
 
 from ..models import Group, Post
 
@@ -20,22 +21,23 @@ class PostURLTests(TestCase):
             author=cls.user,
             text='Тестовый пост',
         )
+        cls.user = User.objects.create_user(username='Vedius')
 
     def setUp(self):
         self.guest_client = Client()
-        self.user = User.objects.create_user(username='HasNoName')
+
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
     def test_urls_uses_correct_template(self):
 
         templates_url_names = {
-            '/': 200,
-            f'/group/{self.group.slug}/': 200,
-            f'/profile/{self.user}/': 200,
-            f'/posts/{self.post.id}/': 200,
-            '/create/': 302,
-            '/unexisting_page/': 404
+            '/':  HTTPStatus.OK.value,
+            f'/group/{self.group.slug}/': HTTPStatus.OK.value,
+            f'/profile/{self.user}/': HTTPStatus.OK.value,
+            f'/posts/{self.post.id}/': HTTPStatus.OK.value,
+            '/create/': HTTPStatus.FOUND.value,
+            '/unexisting_page/': HTTPStatus.NOT_FOUND.value
         }
         for address, status in templates_url_names.items():
             with self.subTest(address=address):

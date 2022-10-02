@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import TestCase
+from http import HTTPStatus
 
 from ..models import Group, Post
 
@@ -22,8 +23,9 @@ class PostModelTest(TestCase):
         )
 
     def test_models_have_correct_methods(self):
-        post = PostModelTest.post.__str__()
-        self.assertEqual(13, len(post))
+        post_text = PostModelTest.post
+        expected_len_text = PostModelTest.post.text[:13]
+        self.assertEqual(expected_len_text, str(post_text))
         group = PostModelTest.group
         expected_obj_name = group.title
         self.assertEqual(expected_obj_name, str(group))

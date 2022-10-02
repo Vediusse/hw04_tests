@@ -25,18 +25,13 @@ class TestCreateForm(TestCase):
             last_name='test',
             email='testuser@yatube.ru'
         )
-
-        cls.post = Post.objects.create(
-            group=TestCreateForm.group,
-            text="text",
-            author=User.objects.get(username='test_user'),
-        )
+        cls.user = User.objects.create_user(username='Vedius')
 
         cls.form = PostForm()
 
     def setUp(self):
         self.guest_client = Client()
-        self.user = User.objects.create_user(username='Vedius')
+
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
 
@@ -54,22 +49,29 @@ class TestCreateForm(TestCase):
                                                args=[self.user.username]))
         self.assertEqual(Post.objects.count(), post_count + 1)
         self.assertTrue(Post.objects.filter(
-            text='Send',
+            text=form_data['text'],
             group=TestCreateForm.group).exists())
 
     def test_form_update(self):
+        self.post = Post.objects.create(
+            group=TestCreateForm.group,
+            text="text",
+            author=User.objects.get(username='test_user'),
+        )
+        self.post.id = 1
+
         self.authorized_client = Client()
         self.authorized_client.force_login(self.author)
-        url = reverse('posts:edit', args=[1])
+        url = reverse('posts:edit', args=[self.post.id])
         self.authorized_client.get(url)
         form_data = {
             'group': self.group.id,
             'text': 'New text',
         }
         self.authorized_client.post(
-            reverse('posts:edit', args=[1]),
+            reverse('posts:edit', args=[self.post.id]),
             data=form_data, follow=True)
 
         self.assertTrue(Post.objects.filter(
-            text='New text',
+            text=form_data['text'],
             group=TestCreateForm.group).exists())
