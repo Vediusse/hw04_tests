@@ -76,9 +76,11 @@ class PostPagesTests(TestCase):
         view_funcs = {
             reverse("posts:index"): "?page=2",
             reverse(
-                "posts:group_list", kwargs={"slug": "test-slug"}
+                "posts:group_list", kwargs={"slug": self.group.slug}
             ): "?page=2",
-            reverse("posts:profile", kwargs={"username": "Bazz"}): "?page=2",
+            reverse(
+                "posts:profile", kwargs={"username": self.user}
+            ): "?page=2",
         }
 
         for reverse_name, page_number in view_funcs.items():
@@ -101,7 +103,7 @@ class PostPagesTests(TestCase):
         view_funcs = {
             reverse("posts:create"): forms.ModelForm,
             reverse(
-                "posts:edit", kwargs={"post_id": 10}
+                "posts:edit", kwargs={"post_id": settings.TEST_PAGE_NUMBER}
             ): forms.ModelForm,
         }
         for reverse_name, clss in view_funcs.items():

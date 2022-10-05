@@ -53,25 +53,23 @@ class TestCreateForm(TestCase):
             group=TestCreateForm.group).exists())
 
     def test_form_update(self):
-        self.post = Post.objects.create(
+        post = Post.objects.create(
             group=TestCreateForm.group,
             text="text",
-            author=User.objects.get(username='test_user'),
+            author=User.objects.get(username='Vedius'),
         )
-        self.post.id = 1
 
-        self.authorized_client = Client()
         self.authorized_client.force_login(self.author)
-        url = reverse('posts:edit', args=[self.post.id])
+        url = reverse('posts:edit', args=[post.id])
         self.authorized_client.get(url)
         form_data = {
             'group': self.group.id,
-            'text': 'New text',
+            'text': 'text',
         }
         self.authorized_client.post(
-            reverse('posts:edit', args=[self.post.id]),
+            reverse('posts:edit', args=[post.id]),
             data=form_data, follow=True)
-
-        self.assertTrue(Post.objects.filter(
-            text=form_data['text'],
-            group=TestCreateForm.group).exists())
+        post.refresh_from_db()
+        self.assertEqual(str(post), form_data['text'])
+        self.assertEqual(post.group, self.group)
+        self.assertEqual(post.author, self.user)
