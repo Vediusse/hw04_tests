@@ -12,25 +12,25 @@
             </p>
           </a>
           <div class="nav__wrapper">
-            <a href="{% url 'about:author' %}" class='nav__text'>👨‍💻 Об авторе</a>
-            <a href="{% url 'about:tech' %}" class="nav__text">⚙️ Технологии</a>
+            <a href="{% url 'about:author' %}" class='nav__text'>Об авторе</a>
+            <a href="{% url 'about:tech' %}" class="nav__text">️ Технологии</a>
             {% if user.is_authenticated %}
             <a class="nav__text" href="{% url 'posts:create' %}">
-              ✏️ Новая запись
+              ️ Новая запись
             </a>
            
             <a href="{% url 'posts:profile' user.username %}" class="nav__text">
-              💻 Пользователь: <span>{{ user.username }}</span>
+               Пользователь: <span>{{ user.username }}</span>
             </a>
             <a class="" href="{% url 'users:logout' %}" class="nav__text">
-              🚪 Выйти
+               Выйти
             </a>
           {% else %}
             <a class="" href="{% url 'users:login' %}">
-              🕶 Войти
+               Войти
             </a>
             <a class="" href="{% url 'users:signup' %}">
-              ☀️ Регистрация
+              ️ Регистрация
             </a>
           {% endif %}
           </div>

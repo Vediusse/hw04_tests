@@ -1,12 +1,18 @@
+import shutil
+import tempfile
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.core.cache import cache
+from django.core.files.uploadedfile import SimpleUploadedFile
 
-from ..models import Post, Group
+from ..models import Post, Group,Follow
 from django.conf import settings
 
 User = get_user_model()
+TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
 
 class PostPagesTests(TestCase):
@@ -15,6 +21,15 @@ class PostPagesTests(TestCase):
         super().setUpClass()
         User.objects.create(username="Bazz")
         cls.user = User.objects.get(username="Bazz")
+
+        small_gif = (
+            b'\x47\x49\x46\x38\x39\x61\x02\x00'
+            b'\x01\x00\x80\x00\x00\x00\x00\x00'
+            b'\xFF\xFF\xFF\x21\xF9\x04\x00\x00'
+            b'\x00\x00\x00\x2C\x00\x00\x00\x00'
+            b'\x02\x00\x01\x00\x00\x02\x02\x0C'
+            b'\x0A\x00\x3B'
+        )
         cls.group = Group.objects.create(
             title="Тестовая группа",
             slug="test-slug",
@@ -24,12 +39,15 @@ class PostPagesTests(TestCase):
                 text=f"Пост №{i+1}",
                 author=User.objects.get(username="Bazz"),
                 group=Group.objects.get(slug="test-slug"),
+                image= SimpleUploadedFile(name='image.gif',
+                                        content=small_gif,
+                                        content_type='image/gif')
             )
             for i in range(settings.POST_PAGE_AMOUNT)
         ]
         Post.objects.bulk_create(post_objs)
 
-        cls.last_post_id = Post.objects.latest("pub_date").id
+        cls.last_post_id = Post.objects.latest("created").id
 
         cls.templates_pages_names = {
             reverse("posts:index"): "posts/index.html",
@@ -50,6 +68,12 @@ class PostPagesTests(TestCase):
                 kwargs={"username": "Bazz"},
             ): "posts/profile.html",
         }
+
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def setUp(self):
 
@@ -148,3 +172,88 @@ class PostPagesTests(TestCase):
                 self.assertEqual(first_object.text, fields[0])
                 self.assertEqual(first_object.author, fields[1])
                 self.assertEqual(first_object.group, fields[2])
+
+    def test_cache_on_page(self):
+        response_one = self.authorized_client.get(reverse('posts:index'))
+        Post.objects.create(text='Cache check', author=self.user)
+        response_two = self.authorized_client.get(reverse('posts:index'))
+        cache.clear()
+        response_three = self.authorized_client.get(reverse('posts:index'))
+        self.assertEqual(response_one.content, response_two.content,
+                         'Кэширование не работает')
+        self.assertNotEqual(response_two.content, response_three.content,
+                            'Не кэшируются страница')
+
+    def test_img_on_pages(self):
+        cache.clear()
+        templates_pages_name = {
+            reverse("posts:index"): "posts/index.html",
+            reverse(
+                "posts:group_list", kwargs={"slug": "test-slug"}
+            ): "posts/group_list.html",
+            reverse(
+                "posts:profile", kwargs={"username": self.user}
+            ): "posts/group_list.html",
+        }
+        for urls in templates_pages_name:
+            with self.subTest(urls=urls):
+                response = self.authorized_client.get(urls)
+                post = Post.objects.get(id=self.last_post_id)
+                self.assertEqual(response.context['page_obj'][0].image, post.image)
+        response = self.authorized_client.get(reverse(
+            'posts:post_detail', kwargs={'post_id': self.last_post_id}))
+        object = response.context['post']
+        self.assertEqual(object.image, post.image)
+
+class FollowingTests(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.user = User.objects.create_user(username='neo')
+        cls.user2 = User.objects.create_user(username='leo')
+        cls.user3 = User.objects.create_user(username='areo')
+        cls.post = Post.objects.create(
+            author=cls.user,
+            text='Тестовый пост',
+        )
+
+    def setUp(self):
+        self.authorized_client = Client()
+        self.authorized_client2 = Client()
+        self.authorized_client3 = Client()
+        self.authorized_client.force_login(self.user)
+        self.authorized_client2.force_login(self.user2)
+        self.authorized_client3.force_login(self.user3)
+
+    def test_following_task(self):
+        self.authorized_client.post(reverse(
+            'posts:profile_follow',
+            kwargs={'username': self.user2}))
+        self.assertEqual(Follow.objects.get().author, self.user2)
+        self.authorized_client.post(reverse(
+            'posts:profile_unfollow',
+            kwargs={'username': self.user2}))
+        follow_count = Follow.objects.count()
+        self.assertEqual(follow_count, 0)
+
+    def test_following_correct_task(self):
+        self.authorized_client2.post(reverse(
+            'posts:profile_follow',
+            kwargs={'username': self.user}))
+        self.authorized_client.post(
+            reverse('posts:create'),
+            {
+                'text': 'Тестовый пост 2222',
+                'author': self.user,
+            }
+        )
+        response = self.authorized_client2.get(reverse(
+            'posts:index_follow'))
+        object = response.context['page_obj']
+        self.assertEqual(len(object), 2)
+        response = self.authorized_client3.get(reverse(
+            'posts:index_follow'))
+        object = response.context['page_obj']
+        self.assertEqual(len(object), 0)
+
+

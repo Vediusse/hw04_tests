@@ -15,7 +15,7 @@
             {% csrf_token %}
             <div class="row form__wrapper">
                 {% for field in form %}
-                  <div class="form-group " >
+                  <div class="form-group  " >
                     <label for="{{ field.id_for_label }}" class="col-md-4  form__label">
                       {{ field.label }}
                       {% if field.field.required %}
@@ -27,18 +27,14 @@
                       </div>
                     {% endif %}
                     </label>
-                    <div class="col-md-6 form__select">
+                    <div class="col-md-6 form__select {{ field.help_text }}">
                       {{ field }}
-                      {% if field.help_text %}
-                        <small id="{{ field.id_for_label }}-help" class="form-text text-muted ">
-                          {{ field.help_text}}
-                        </small>
-                      {% endif %}
+
                     </div>
                   </div>
                 {% endfor %}
             </div>
-            <div class="col-md-6 offset-md-4 pd">
+            <div class="">
               <button type="submit" class="btn btn-primary">
                 {% if is_edit %}
                    Изменить
