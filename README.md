@@ -35,7 +35,7 @@ python manage.py migrate
 ```
 python manage.py runserver
 ```
-
+***Для тестировки приложения***
 ```
 cd ..
 pytest
